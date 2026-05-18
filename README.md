@@ -16,7 +16,7 @@
 
 <br>
 
-![HashGuard Pro Dashboard](https://via.placeholder.com/800x400.png?text=HashGuard+Pro+Dashboard+Screenshot)
+![HashGuard Pro Dashboard](https:[//via.placeholder.com/800x400.png?text=HashGuard+Pro+Dashboard+Screenshot](https://hashidentifier.parrysecurity.online/))
 
 **Detect | Analyze | Generate | Verify | Secure**
 
