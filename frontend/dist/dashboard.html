@@ -1,0 +1,2101 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>HashGuard Pro | Advanced Hash Detection Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #f5f3ef;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #eceae4;
+            --bg-card: #ffffff;
+            --bg-input: #f9f8f6;
+            --text-primary: #1a1714;
+            --text-secondary: #6b6560;
+            --text-muted: #9a9590;
+            --accent: #2d5af0;
+            --accent-hover: #1e44d4;
+            --accent-soft: #eef1fe;
+            --accent-glow: rgba(45,90,240,0.12);
+            --green: #1a9c52;
+            --green-soft: #e6f7ee;
+            --amber: #c47a0f;
+            --amber-soft: #fef3e0;
+            --red: #c73535;
+            --red-soft: #fde8e8;
+            --border: #e0ddd6;
+            --border-soft: #ebe9e3;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.04);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 18px;
+            --radius-xl: 24px;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0e0d0c;
+            --bg-secondary: #171614;
+            --bg-tertiary: #1e1c1a;
+            --bg-card: #1a1816;
+            --bg-input: #131211;
+            --text-primary: #f0ece6;
+            --text-secondary: #8a857e;
+            --text-muted: #5a5650;
+            --accent: #4f7aff;
+            --accent-hover: #6b8fff;
+            --accent-soft: #1a1f3a;
+            --accent-glow: rgba(79,122,255,0.15);
+            --green: #2abd68;
+            --green-soft: #0f2a1c;
+            --amber: #e8952a;
+            --amber-soft: #2a1f0a;
+            --red: #e05454;
+            --red-soft: #2a1010;
+            --border: #2a2824;
+            --border-soft: #232120;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Syne', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* Noise texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        /* Layout */
+        .shell {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            padding: 28px 0;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .logo {
+            padding: 0 24px 28px;
+            border-bottom: 1px solid var(--border-soft);
+            margin-bottom: 20px;
+        }
+
+        .logo-mark {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+
+        .logo-tag {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-top: 2px;
+        }
+
+        .nav-section {
+            padding: 0 16px;
+            margin-bottom: 8px;
+        }
+
+        .nav-section-title {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 8px 8px 6px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--accent);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 100px;
+        }
+
+        /* Sidebar footer */
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-soft);
+        }
+
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 10px 14px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .theme-toggle:hover { background: var(--border); }
+
+        .toggle-knob {
+            width: 36px;
+            height: 20px;
+            background: var(--border);
+            border-radius: 100px;
+            margin-left: auto;
+            position: relative;
+            transition: background 0.3s ease;
+        }
+
+        [data-theme="dark"] .toggle-knob { background: var(--accent); }
+
+        .toggle-knob::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: left 0.3s ease;
+        }
+
+        [data-theme="dark"] .toggle-knob::after { left: 19px; }
+
+        /* Main content */
+        .main {
+            overflow-y: auto;
+            background: var(--bg-primary);
+        }
+
+        /* Tab panels */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* Top bar */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--border-soft);
+            background: var(--bg-card);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .topbar-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+        .status-dot {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: var(--bg-tertiary);
+            padding: 6px 12px;
+            border-radius: 100px;
+            border: 1px solid var(--border);
+        }
+
+        .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%,100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Page content */
+        .page-content { padding: 28px 32px; }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px 22px;
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-md), 0 0 0 1px var(--accent-glow);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1;
+        }
+
+        .stat-value small {
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0;
+            color: var(--text-secondary);
+        }
+
+        .stat-delta {
+            font-size: 12px;
+            color: var(--green);
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Two-column grid */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+        }
+
+        .card-head {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--border-soft);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-icon-wrap {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-soft);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+        }
+
+        .card-icon-wrap svg { width: 20px; height: 20px; }
+
+        .card-title { font-size: 16px; font-weight: 700; }
+        .card-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+        .card-body { padding: 20px 24px; }
+
+        /* Form elements */
+        .form-group { margin-bottom: 16px; }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        textarea, select, input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            resize: vertical;
+        }
+
+        textarea:focus, select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        select { font-family: 'Syne', sans-serif; cursor: pointer; }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 20px;
+            border-radius: var(--radius-md);
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover { background: var(--border); }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: var(--radius-sm);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-ghost:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+        .btn-danger {
+            background: var(--red-soft);
+            color: var(--red);
+            border: 1px solid var(--red);
+        }
+
+        .btn-danger:hover { background: var(--red); color: white; }
+
+        /* Results */
+        .result-box {
+            margin-top: 16px;
+            display: none;
+        }
+
+        .result-box.show { display: block; animation: slide-up 0.3s ease; }
+
+        @keyframes slide-up {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-item {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 18px 20px;
+            margin-bottom: 12px;
+        }
+
+        .result-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .hash-name {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .conf-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 100px;
+            letter-spacing: 0.5px;
+        }
+
+        .conf-high { background: var(--green-soft); color: var(--green); }
+        .conf-med { background: var(--amber-soft); color: var(--amber); }
+        .conf-low { background: var(--red-soft); color: var(--red); }
+
+        .progress-track {
+            height: 4px;
+            background: var(--border);
+            border-radius: 100px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 100px;
+            width: 0;
+            transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .detail-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
+        }
+
+        .detail-key {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .detail-val {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Security tags */
+        .sec-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 100px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .sec-secure { background: var(--green-soft); color: var(--green); }
+        .sec-weak { background: var(--amber-soft); color: var(--amber); }
+        .sec-critical { background: var(--red-soft); color: var(--red); }
+
+        /* Hash output display */
+        .hash-output {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            color: var(--text-primary);
+            position: relative;
+            line-height: 1.6;
+        }
+
+        /* Sample hashes */
+        .samples-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .sample-chip {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+        }
+
+        .sample-chip:hover {
+            background: var(--accent-soft);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Compare table */
+        .compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .compare-table th {
+            text-align: left;
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+        }
+
+        .compare-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-soft);
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+
+        .compare-table tr:last-child td { border-bottom: none; }
+        .compare-table tr:hover td { background: var(--bg-tertiary); }
+
+        /* History list */
+        .history-list { display: flex; flex-direction: column; gap: 8px; }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .history-item:hover {
+            border-color: var(--accent);
+            background: var(--accent-soft);
+        }
+
+        .history-hash {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .history-type {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent);
+            background: var(--accent-soft);
+            padding: 3px 8px;
+            border-radius: 100px;
+            white-space: nowrap;
+        }
+
+        .history-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg { width: 48px; height: 48px; margin: 0 auto 12px; opacity: 0.4; }
+        .empty-state p { font-size: 14px; }
+
+        /* Info panel */
+        .info-panel {
+            background: var(--accent-soft);
+            border: 1px solid var(--accent);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            font-size: 13px;
+            color: var(--accent);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .info-panel svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+
+        /* Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 12px 18px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            min-width: 240px;
+            animation: toast-in 0.3s ease;
+            color: var(--text-primary);
+        }
+
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .toast.out { animation: toast-out 0.3s ease forwards; }
+
+        @keyframes toast-out {
+            to { opacity: 0; transform: translateX(20px); }
+        }
+
+        .toast-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* Encoder / Decoder tab */
+        .encode-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+
+        .encode-tab {
+            flex: 1;
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-family: 'Syne', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .encode-tab.active {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Fullwidth card */
+        .card-full {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        /* Scrollable table wrapper */
+        .table-scroll { overflow-x: auto; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .shell { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .grid-2 { grid-template-columns: 1fr; }
+            .page-content { padding: 20px 16px; }
+            .topbar { padding: 16px 20px; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Utility */
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .gap-2 { gap: 8px; }
+        .ml-auto { margin-left: auto; }
+        .mt-2 { margin-top: 8px; }
+        .mt-3 { margin-top: 12px; }
+        .mt-4 { margin-top: 16px; }
+        .text-muted { color: var(--text-muted); font-size: 12px; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: var(--border-soft);
+            margin: 16px 0;
+        }
+
+        /* Copy wrapper */
+        .copyable {
+            position: relative;
+        }
+
+        .copy-btn-float {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            font-family: 'Syne', sans-serif;
+        }
+
+        .copy-btn-float:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* Hmac section */
+        .hmac-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        /* Analysis meter */
+        .meter-wrap { margin: 8px 0; }
+        .meter-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .meter-bar {
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 100px;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            border-radius: 100px;
+            width: 0;
+            transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .meter-fill.green { background: var(--green); }
+        .meter-fill.amber { background: var(--amber); }
+        .meter-fill.red { background: var(--red); }
+        .meter-fill.blue { background: var(--accent); }
+    </style>
+</head>
+<body>
+
+<div class="shell">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-mark">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="logo-text">HashGuard</div>
+                    <div class="logo-tag">Pro Platform</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Analysis</div>
+            <button class="nav-item active" onclick="switchTab('analyzer', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                Hash Analyzer
+            </button>
+            <button class="nav-item" onclick="switchTab('generator', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+                Hash Generator
+            </button>
+            <button class="nav-item" onclick="switchTab('compare', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+                Hash Compare
+                <span class="nav-badge">New</span>
+            </button>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Utilities</div>
+            <button class="nav-item" onclick="switchTab('encode', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Encode / Decode
+            </button>
+            <button class="nav-item" onclick="switchTab('hmac', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                HMAC Generator
+            </button>
+            <button class="nav-item" onclick="switchTab('strength', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Password Strength
+            </button>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Records</div>
+            <button class="nav-item" onclick="switchTab('history', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                History
+            </button>
+            <button class="nav-item" onclick="switchTab('reference', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                Reference
+            </button>
+        </div>
+
+        <div class="sidebar-footer">
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                Dark Mode
+                <div class="toggle-knob"></div>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <!-- ===== ANALYZER TAB ===== -->
+        <div id="tab-analyzer" class="tab-panel active">
+            <div class="topbar">
+                <span class="topbar-title">Hash Analyzer</span>
+                <div class="topbar-actions">
+                    <div class="status-dot"><div class="dot"></div>Engine Online</div>
+                </div>
+            </div>
+            <div class="page-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Scans</div>
+                        <div class="stat-value mono" id="statScans">0</div>
+                        <div class="stat-delta">↑ session total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Accuracy</div>
+                        <div class="stat-value">99.8<small>%</small></div>
+                        <div class="stat-delta">Pattern matching</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Response</div>
+                        <div class="stat-value mono"><span id="statMs">—</span><small>ms</small></div>
+                        <div class="stat-delta">Last analysis</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Algorithms</div>
+                        <div class="stat-value">20<small>+</small></div>
+                        <div class="stat-delta">Hash types detected</div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-head">
+                            <div class="card-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                            </div>
+                            <div>
+                                <div class="card-title">Analyze Hash</div>
+                                <div class="card-sub">Identify algorithm & properties</div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Hash Input</label>
+                                <textarea id="analyzeInput" rows="4" placeholder="Paste hash here...&#10;e.g. 5d41402abc4b2a76b9719d911017c592"></textarea>
+                            </div>
+                            <button class="btn btn-primary" id="analyzeBtn" onclick="runAnalyze()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                Analyze Hash
+                            </button>
+                            <div id="analyzeResult" class="result-box"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-head">
+                            <div class="card-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                            </div>
+                            <div>
+                                <div class="card-title">Quick Samples</div>
+                                <div class="card-sub">Click to test instantly</div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="samples-wrap">
+                                <div class="sample-chip" onclick="loadSample('5d41402abc4b2a76b9719d911017c592')">MD5</div>
+                                <div class="sample-chip" onclick="loadSample('aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d')">SHA-1</div>
+                                <div class="sample-chip" onclick="loadSample('2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824')">SHA-256</div>
+                                <div class="sample-chip" onclick="loadSample('9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043')">SHA-512</div>
+                                <div class="sample-chip" onclick="loadSample('8846f7eaee8fb117ad06bdd830b7586c')">NTLM</div>
+                                <div class="sample-chip" onclick="loadSample('d41d8cd9')">CRC32</div>
+                                <div class="sample-chip" onclick="loadSample('5f4dcc3b5aa765d61d8327deb882cf99')">MD5 (password)</div>
+                                <div class="sample-chip" onclick="loadSample('da39a3ee5e6b4b0d3255bfef95601890afd80709')">SHA-1 Empty</div>
+                                <div class="sample-chip" onclick="loadSample('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')">SHA-256 Empty</div>
+                                <div class="sample-chip" onclick="loadSample('098f6bcd4621d373cade4e832627b4f6')">MD5 (test)</div>
+                                <div class="sample-chip" onclick="loadSample('$2y$10$n6TAPLBbFiS.XqC7jSMPce5lxFfmRxCJ2gXfOZdqOiP6UwU4TP/ry')">bcrypt</div>
+                                <div class="sample-chip" onclick="loadSample('$argon2id$v=19$m=65536,t=2,p=1$c29tZXNhbHQ$RdescudvJCsgt3ub+b+dWRWJTmaaJObG')">Argon2</div>
+                            </div>
+                            <div class="divider"></div>
+                            <div class="form-group">
+                                <label class="form-label">Hash Information</label>
+                                <div class="info-panel">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                    <span>The analyzer uses length, character set, and pattern recognition to identify hash algorithms with high confidence.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== GENERATOR TAB ===== -->
+        <div id="tab-generator" class="tab-panel">
+            <div class="topbar">
+                <span class="topbar-title">Hash Generator</span>
+                <div class="topbar-actions">
+                    <div class="status-dot"><div class="dot"></div>Client-side</div>
+                </div>
+            </div>
+            <div class="page-content">
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-head">
+                            <div class="card-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+                            </div>
+                            <div>
+                                <div class="card-title">Generate Hash</div>
+                                <div class="card-sub">Compute cryptographic digest</div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Input Text</label>
+                                <textarea id="genInput" rows="3" placeholder="Enter text to hash..." oninput="liveGen()"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Algorithm</label>
+                                <select id="genAlgo" onchange="liveGen()">
+                                    <option value="md5">MD5 — 128-bit (Not recommended)</option>
+                                    <option value="sha1">SHA-1 — 160-bit (Deprecated)</option>
+                                    <option value="sha256" selected>SHA-256 — 256-bit (Recommended)</option>
+                                    <option value="sha512">SHA-512 — 512-bit (High security)</option>
+                                    <option value="sha3">SHA-3 — 256-bit (Modern)</option>
+                                    <option value="ripemd160">RIPEMD-160 — 160-bit</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Output Format</label>
+                                <select id="genFormat" onchange="liveGen()">
+                                    <option value="hex">Hexadecimal</option>
+                                    <option value="base64">Base64</option>
+                                    <option value="binary">Binary (0/1)</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="generateHash()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                Generate
+                            </button>
+                            <div id="genResult" class="result-box"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-head">
+                            <div class="card-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                            </div>
+                            <div>
+                                <div class="card-title">Live Preview</div>
+                                <div class="card-sub">All algorithms simultaneously</div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Text</label>
+                                <input type="text" id="liveInput" placeholder="Type to see all hashes live..." oninput="updateAllHashes()">
+                            </div>
+                            <div id="allHashesTable">
+                                <div class="empty-state">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    <p>Start typing to see all hash outputs</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== COMPARE TAB ===== -->
+        <div id="tab-compare" class="tab-panel">
+            <div class="topbar">
+                <span class="topbar-title">Hash Comparison</span>
+            </div>
+            <div class="page-content">
+                <div class="card-full">
+                    <div class="card-head">
+                        <div class="card-icon-wrap">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+                        </div>
+                        <div>
+                            <div class="card-title">Compare Two Hashes</div>
+                            <div class="card-sub">Verify integrity with timing-safe comparison</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Hash A</label>
+                                <textarea id="compareA" rows="3" placeholder="First hash..." oninput="compareHashes()"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Hash B</label>
+                                <textarea id="compareB" rows="3" placeholder="Second hash..." oninput="compareHashes()"></textarea>
+                            </div>
+                        </div>
+                        <div id="compareResult"></div>
+                    </div>
+                </div>
+
+                <div class="card-full">
+                    <div class="card-head">
+                        <div class="card-icon-wrap">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                        </div>
+                        <div>
+                            <div class="card-title">File Hash Verifier</div>
+                            <div class="card-sub">Compute hash of any file</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid-2">
+                            <div>
+                                <div class="form-group">
+                                    <label class="form-label">Select File</label>
+                                    <input type="file" id="fileInput" onchange="hashFile()" style="font-family:'Syne',sans-serif">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Algorithm</label>
+                                    <select id="fileAlgo">
+                                        <option value="md5">MD5</option>
+                                        <option value="sha1">SHA-1</option>
+                                        <option value="sha256" selected>SHA-256</option>
+                                        <option value="sha512">SHA-512</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="form-group">
+                                    <label class="form-label">Expected Hash (optional)</label>
+                                    <textarea id="expectedHash" rows="3" placeholder="Paste expected hash to verify..." oninput="verifyExpected()"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="fileResult"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== ENCODE/DECODE TAB ===== -->
+        <div id="tab-encode" class="tab-panel">
+            <div class="topbar">
+                <span class="topbar-title">Encode / Decode</span>
+            </div>
+            <div class="page-content">
+                <div class="card-full">
+                    <div class="card-body">
+                        <div class="encode-tabs">
+                            <button class="encode-tab active" onclick="setEncodeMode('base64')">Base64</button>
+                            <button class="encode-tab" onclick="setEncodeMode('hex')">Hex</button>
+                            <button class="encode-tab" onclick="setEncodeMode('url')">URL</button>
+                            <button class="encode-tab" onclick="setEncodeMode('binary')">Binary</button>
+                            <button class="encode-tab" onclick="setEncodeMode('morse')">Morse</button>
+                        </div>
+                        <div class="grid-2">
+                            <div>
+                                <div class="form-group">
+                                    <label class="form-label">Input</label>
+                                    <textarea id="encodeInput" rows="6" placeholder="Enter text to encode/decode..."></textarea>
+                                </div>
+                                <div class="flex gap-2 mt-2">
+                                    <button class="btn btn-primary" style="flex:1" onclick="doEncode()">Encode ↓</button>
+                                    <button class="btn btn-secondary" style="flex:1" onclick="doDecode()">Decode ↑</button>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="form-group">
+                                    <label class="form-label">Output <span class="text-muted" id="encodeModeLbl">(Base64)</span></label>
+                                    <div class="copyable">
+                                        <div class="hash-output" id="encodeOutput" style="min-height:118px;max-height:200px;overflow-y:auto">—</div>
+                                        <button class="copy-btn-float" onclick="copyText('encodeOutput')">Copy</button>
+                                    </div>
+                                </div>
+                                <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="swapEncode()">⇅ Swap Input / Output</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== HMAC TAB ===== -->
+        <div id="tab-hmac" class="tab-panel">
+            <div class="topbar">
+                <span class="topbar-title">HMAC Generator</span>
+            </div>
+            <div class="page-content">
+                <div class="card-full">
+                    <div class="card-body">
+                        <div class="hmac-inputs">
+                            <div class="form-group">
+                                <label class="form-label">Message</label>
+                                <textarea id="hmacMsg" rows="4" placeholder="Enter message..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Secret Key</label>
+                                <textarea id="hmacKey" rows="4" placeholder="Enter secret key..."></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Algorithm</label>
+                            <select id="hmacAlgo">
+                                <option value="hmacMD5">HMAC-MD5</option>
+                                <option value="hmacSHA1">HMAC-SHA1</option>
+                                <option value="hmacSHA256" selected>HMAC-SHA256</option>
+                                <option value="hmacSHA512">HMAC-SHA512</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="generateHMAC()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            Generate HMAC
+                        </button>
+                        <div id="hmacResult" class="result-box"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== PASSWORD STRENGTH TAB ===== -->
+        <div id="tab-strength" class="tab-panel">
+            <div class="topbar">
+                <span class="topbar-title">Password Strength Analyzer</span>
+            </div>
+            <div class="page-content">
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-head">
+                            <div class="card-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                            </div>
+                            <div>
+                                <div class="card-title">Analyze Password</div>
+                                <div class="card-sub">Real-time strength scoring</div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Password</label>
+                                <div class="flex gap-2">
+                                    <input type="password" id="pwInput" placeholder="Enter password..." oninput="analyzePw()" style="flex:1">
+                                    <button class="btn btn-secondary btn-sm" onclick="togglePwVis()">👁</button>
+                                </div>
+                            </div>
+                            <div id="pwResult"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-head">
+                            <div class="card-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </div>
+                            <div>
+                                <div class="card-title">Password Generator</div>
+                                <div class="card-sub">Create secure passwords</div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Length: <span id="pwLenLbl">16</span></label>
+                                <input type="range" id="pwLen" min="8" max="64" value="16" oninput="document.getElementById('pwLenLbl').textContent=this.value">
+                            </div>
+                            <div class="form-group">
+                                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text-secondary)"><input type="checkbox" id="pwUpper" checked> Uppercase (A-Z)</label>
+                                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text-secondary);margin-top:6px"><input type="checkbox" id="pwLower" checked> Lowercase (a-z)</label>
+                                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text-secondary);margin-top:6px"><input type="checkbox" id="pwNums" checked> Numbers (0-9)</label>
+                                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text-secondary);margin-top:6px"><input type="checkbox" id="pwSyms" checked> Symbols (!@#$...)</label>
+                            </div>
+                            <button class="btn btn-primary" onclick="genPassword()">Generate Password</button>
+                            <div id="genPwResult" class="result-box"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== HISTORY TAB ===== -->
+        <div id="tab-history" class="tab-panel">
+            <div class="topbar">
+                <span class="topbar-title">Scan History</span>
+                <div class="topbar-actions">
+                    <button class="btn btn-danger btn-sm" onclick="clearHistory()">Clear All</button>
+                </div>
+            </div>
+            <div class="page-content">
+                <div class="card-full">
+                    <div class="card-body">
+                        <div id="historyList">
+                            <div class="empty-state">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                <p>No history yet. Analyze some hashes first.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== REFERENCE TAB ===== -->
+        <div id="tab-reference" class="tab-panel">
+            <div class="topbar">
+                <span class="topbar-title">Algorithm Reference</span>
+            </div>
+            <div class="page-content">
+                <div class="card-full">
+                    <div class="card-head">
+                        <div class="card-icon-wrap">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                        </div>
+                        <div>
+                            <div class="card-title">Hash Algorithm Reference</div>
+                            <div class="card-sub">Security ratings, bit sizes, and usage</div>
+                        </div>
+                    </div>
+                    <div class="table-scroll">
+                        <table class="compare-table">
+                            <thead>
+                                <tr>
+                                    <th>Algorithm</th>
+                                    <th>Bits</th>
+                                    <th>Hex Length</th>
+                                    <th>Security</th>
+                                    <th>Hashcat</th>
+                                    <th>Use Case</th>
+                                </tr>
+                            </thead>
+                            <tbody id="refTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ==============================
+// DATA & STATE
+// ==============================
+const HASH_DB = [
+    { type:'MD5', bits:128, length:32, pattern:/^[a-f0-9]{32}$/i, confidence:95, security:'CRITICAL', hashcat:'0', john:'raw-md5', uses:['Legacy checksums','Password storage (insecure)'] },
+    { type:'SHA-1', bits:160, length:40, pattern:/^[a-f0-9]{40}$/i, confidence:90, security:'WEAK', hashcat:'100', john:'raw-sha1', uses:['Git commits','Legacy TLS'] },
+    { type:'SHA-256', bits:256, length:64, pattern:/^[a-f0-9]{64}$/i, confidence:95, security:'SECURE', hashcat:'1400', john:'raw-sha256', uses:['TLS certificates','JWT signing'] },
+    { type:'SHA-512', bits:512, length:128, pattern:/^[a-f0-9]{128}$/i, confidence:95, security:'SECURE', hashcat:'1700', john:'raw-sha512', uses:['Password storage','High-security checksums'] },
+    { type:'SHA-384', bits:384, length:96, pattern:/^[a-f0-9]{96}$/i, confidence:90, security:'SECURE', hashcat:'10800', john:'raw-sha384', uses:['TLS','Digital signatures'] },
+    { type:'SHA-224', bits:224, length:56, pattern:/^[a-f0-9]{56}$/i, confidence:85, security:'SECURE', hashcat:'1300', john:'raw-sha224', uses:['Constrained environments'] },
+    { type:'NTLM', bits:128, length:32, pattern:/^[a-f0-9]{32}$/i, confidence:50, security:'CRITICAL', hashcat:'1000', john:'nt', uses:['Windows authentication'] },
+    { type:'bcrypt', bits:184, length:60, pattern:/^\$2[ayb]\$\d{2}\$.{53}$/, confidence:99, security:'SECURE', hashcat:'3200', john:'bcrypt', uses:['Password hashing (recommended)'] },
+    { type:'Argon2', bits:256, length:null, pattern:/^\$argon2/, confidence:99, security:'SECURE', hashcat:'N/A', john:'N/A', uses:['Modern password hashing'] },
+    { type:'scrypt', bits:256, length:null, pattern:/^\$s0\$/, confidence:99, security:'SECURE', hashcat:'8900', john:'scrypt', uses:['Password hashing','Key derivation'] },
+    { type:'MD4', bits:128, length:32, pattern:/^[a-f0-9]{32}$/i, confidence:40, security:'CRITICAL', hashcat:'900', john:'raw-md4', uses:['Legacy Windows (NTLM)'] },
+    { type:'CRC32', bits:32, length:8, pattern:/^[a-f0-9]{8}$/i, confidence:90, security:'CRITICAL', hashcat:'11500', john:'crc32', uses:['Error detection','File integrity (non-crypto)'] },
+    { type:'RIPEMD-160', bits:160, length:40, pattern:/^[a-f0-9]{40}$/i, confidence:50, security:'WEAK', hashcat:'6000', john:'ripemd-160', uses:['Bitcoin addresses','Legacy crypto'] },
+    { type:'Whirlpool', bits:512, length:128, pattern:/^[a-f0-9]{128}$/i, confidence:50, security:'SECURE', hashcat:'6100', john:'whirlpool', uses:['ISO/IEC 10118'] },
+    { type:'MySQL 4.x', bits:64, length:16, pattern:/^[a-f0-9]{16}$/i, confidence:85, security:'CRITICAL', hashcat:'200', john:'mysql-sha1', uses:['Old MySQL versions'] },
+    { type:'MySQL 5.x', bits:160, length:41, pattern:/^\*[A-F0-9]{40}$/, confidence:99, security:'WEAK', hashcat:'300', john:'mysql', uses:['MySQL authentication'] },
+    { type:'SHA3-256', bits:256, length:64, pattern:/^[a-f0-9]{64}$/i, confidence:50, security:'SECURE', hashcat:'17300', john:'raw-sha3-256', uses:['Modern applications','Ethereum'] },
+    { type:'Tiger-192', bits:192, length:48, pattern:/^[a-f0-9]{48}$/i, confidence:85, security:'WEAK', hashcat:'200', john:'tiger', uses:['Legacy use only'] },
+    { type:'LM Hash', bits:128, length:32, pattern:/^[A-F0-9]{32}$/, confidence:60, security:'CRITICAL', hashcat:'3000', john:'lm', uses:['Legacy Windows (pre-Vista)'] },
+    { type:'PBKDF2', bits:256, length:null, pattern:/^\$pbkdf2/, confidence:99, security:'SECURE', hashcat:'10900', john:'pbkdf2-hmac-sha256', uses:['Key derivation','LUKS'] },
+];
+
+let scanCount = parseInt(localStorage.getItem('hg_scans') || '0');
+let history = JSON.parse(localStorage.getItem('hg_history') || '[]');
+let encodeMode = 'base64';
+let computedFileHash = '';
+
+function updateScanCount() {
+    document.getElementById('statScans').textContent = scanCount;
+    localStorage.setItem('hg_scans', scanCount);
+}
+
+updateScanCount();
+renderHistory();
+renderRefTable();
+
+// ==============================
+// THEME
+// ==============================
+const savedTheme = localStorage.getItem('hg_theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+
+function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('hg_theme', next);
+}
+
+// ==============================
+// TAB NAVIGATION
+// ==============================
+function switchTab(name, el) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    el.classList.add('active');
+}
+
+// ==============================
+// TOAST
+// ==============================
+function toast(msg, type='success') {
+    const colors = { success: '#1a9c52', error: '#c73535', info: '#2d5af0', warn: '#c47a0f' };
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerHTML = `<div class="toast-dot" style="background:${colors[type]}"></div><span>${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+// ==============================
+// HASH IDENTIFICATION
+// ==============================
+function identifyHash(hash) {
+    hash = hash.trim();
+    const matches = [];
+    for (const h of HASH_DB) {
+        if (h.pattern.test(hash)) {
+            let conf = h.confidence;
+            // Multiple algos same length — adjust confidence
+            const sameLen = HASH_DB.filter(x => x.length === h.length && x !== h);
+            if (sameLen.length > 0) conf = Math.max(40, conf - 20);
+            matches.push({ ...h, confidence: conf });
+        }
+    }
+    // Sort by confidence
+    return matches.sort((a,b) => b.confidence - a.confidence);
+}
+
+function loadSample(hash) {
+    document.getElementById('analyzeInput').value = hash;
+    runAnalyze();
+}
+
+async function runAnalyze() {
+    const input = document.getElementById('analyzeInput').value.trim();
+    if (!input) { toast('Please enter a hash value', 'error'); return; }
+
+    const btn = document.getElementById('analyzeBtn');
+    btn.innerHTML = '<div class="spinner"></div>Analyzing...';
+    btn.disabled = true;
+
+    const t0 = performance.now();
+
+    // Simulate slight async delay for UX
+    await new Promise(r => setTimeout(r, 200 + Math.random() * 300));
+
+    const results = identifyHash(input);
+    const ms = Math.round(performance.now() - t0);
+    document.getElementById('statMs').textContent = ms;
+
+    scanCount++;
+    updateScanCount();
+    addHistory(input, results);
+
+    const resultEl = document.getElementById('analyzeResult');
+    resultEl.classList.add('show');
+
+    if (!results.length) {
+        resultEl.innerHTML = `<div class="result-item" style="text-align:center;color:var(--red)">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 8px;display:block;opacity:0.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            No matching hash algorithm found
+        </div>`;
+        toast('No matching algorithm found', 'warn');
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Analyze Hash';
+        btn.disabled = false;
+        return;
+    }
+
+    let html = '';
+    results.slice(0, 3).forEach((r, i) => {
+        const cc = r.confidence >= 80 ? 'conf-high' : r.confidence >= 55 ? 'conf-med' : 'conf-low';
+        const sc = r.security === 'SECURE' ? 'sec-secure' : r.security === 'WEAK' ? 'sec-weak' : 'sec-critical';
+        html += `
+        <div class="result-item">
+            <div class="result-top">
+                <div class="hash-name">${r.type}</div>
+                <div class="conf-badge ${cc}">${r.confidence}% match</div>
+            </div>
+            <div class="progress-track"><div class="progress-fill" data-width="${r.confidence}"></div></div>
+            <div class="detail-grid">
+                <div class="detail-item"><div class="detail-key">Security</div><div class="detail-val"><span class="sec-tag ${sc}">${r.security}</span></div></div>
+                <div class="detail-item"><div class="detail-key">Bit Length</div><div class="detail-val">${r.bits} bits</div></div>
+                <div class="detail-item"><div class="detail-key">Char Length</div><div class="detail-val">${input.length} chars</div></div>
+                <div class="detail-item"><div class="detail-key">Hashcat Mode</div><div class="detail-val">${r.hashcat}</div></div>
+                <div class="detail-item"><div class="detail-key">John Format</div><div class="detail-val">${r.john}</div></div>
+                ${r.uses ? `<div class="detail-item"><div class="detail-key">Common Use</div><div class="detail-val">${r.uses[0]}</div></div>` : ''}
+            </div>
+        </div>`;
+    });
+
+    resultEl.innerHTML = html;
+    // Animate progress bars
+    setTimeout(() => {
+        document.querySelectorAll('.progress-fill[data-width]').forEach(el => {
+            el.style.width = el.dataset.width + '%';
+        });
+    }, 50);
+
+    toast(`Identified: ${results[0].type}`, 'success');
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Analyze Hash';
+    btn.disabled = false;
+}
+
+// ==============================
+// HASH GENERATION
+// ==============================
+function hashText(text, algo) {
+    try {
+        switch(algo) {
+            case 'md5': return CryptoJS.MD5(text).toString();
+            case 'sha1': return CryptoJS.SHA1(text).toString();
+            case 'sha256': return CryptoJS.SHA256(text).toString();
+            case 'sha512': return CryptoJS.SHA512(text).toString();
+            case 'sha3': return CryptoJS.SHA3(text, {outputLength: 256}).toString();
+            case 'ripemd160': return CryptoJS.RIPEMD160(text).toString();
+            default: return CryptoJS.SHA256(text).toString();
+        }
+    } catch(e) { return 'Error: ' + e.message; }
+}
+
+function toFormat(hexStr, fmt) {
+    if (fmt === 'hex') return hexStr;
+    if (fmt === 'base64') {
+        const bytes = hexStr.match(/.{2}/g).map(b => parseInt(b, 16));
+        return btoa(String.fromCharCode(...bytes));
+    }
+    if (fmt === 'binary') {
+        return hexStr.match(/.{2}/g).map(b => parseInt(b,16).toString(2).padStart(8,'0')).join(' ');
+    }
+    return hexStr;
+}
+
+function generateHash() {
+    const text = document.getElementById('genInput').value;
+    if (!text) { toast('Enter text to hash', 'error'); return; }
+    const algo = document.getElementById('genAlgo').value;
+    const fmt = document.getElementById('genFormat').value;
+    const hex = hashText(text, algo);
+    const out = toFormat(hex, fmt);
+    const result = document.getElementById('genResult');
+    result.classList.add('show');
+    result.innerHTML = `
+        <div class="result-item">
+            <div class="result-top">
+                <div class="hash-name">${algo.toUpperCase()}</div>
+                <button class="btn btn-ghost btn-sm" onclick="copyRaw('${out}')">Copy</button>
+            </div>
+            <div class="copyable">
+                <div class="hash-output" id="genHashOut">${out}</div>
+                <button class="copy-btn-float" onclick="copyRaw('${out}')">Copy</button>
+            </div>
+            <div class="detail-grid" style="margin-top:12px">
+                <div class="detail-item"><div class="detail-key">Format</div><div class="detail-val">${fmt}</div></div>
+                <div class="detail-item"><div class="detail-key">Length</div><div class="detail-val">${out.length} chars</div></div>
+                <div class="detail-item"><div class="detail-key">Input chars</div><div class="detail-val">${text.length}</div></div>
+                <div class="detail-item"><div class="detail-key">Input bytes</div><div class="detail-val">${new TextEncoder().encode(text).length}</div></div>
+            </div>
+        </div>`;
+    toast('Hash generated!');
+}
+
+function liveGen() { /* auto-trigger on change is handled by oninput on generate button */ }
+
+function updateAllHashes() {
+    const text = document.getElementById('liveInput').value;
+    const container = document.getElementById('allHashesTable');
+    if (!text) { container.innerHTML = '<div class="empty-state"><p>Start typing to see all hash outputs</p></div>'; return; }
+    const algos = ['md5','sha1','sha256','sha512','sha3','ripemd160'];
+    const names = { md5:'MD5', sha1:'SHA-1', sha256:'SHA-256', sha512:'SHA-512', sha3:'SHA-3', ripemd160:'RIPEMD-160' };
+    let rows = algos.map(a => {
+        const h = hashText(text, a);
+        return `<tr>
+            <td style="font-weight:600;color:var(--accent);font-family:'Syne',sans-serif">${names[a]}</td>
+            <td style="word-break:break-all;font-size:11px">${h}</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="copyRaw('${h}')">Copy</button></td>
+        </tr>`;
+    }).join('');
+    container.innerHTML = `<table class="compare-table"><thead><tr><th>Algorithm</th><th>Hash</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ==============================
+// COMPARE
+// ==============================
+function compareHashes() {
+    const a = document.getElementById('compareA').value.trim();
+    const b = document.getElementById('compareB').value.trim();
+    const el = document.getElementById('compareResult');
+    if (!a || !b) { el.innerHTML = ''; return; }
+
+    const match = a.toLowerCase() === b.toLowerCase();
+    const pct = similarity(a.toLowerCase(), b.toLowerCase());
+
+    el.innerHTML = `
+        <div class="result-item" style="border-color:var(--${match?'green':'red'})">
+            <div class="result-top">
+                <div class="hash-name" style="color:var(--${match?'green':'red'})">${match ? '✓ MATCH' : '✗ MISMATCH'}</div>
+                <div class="conf-badge ${match?'conf-high':'conf-low'}">${match?'Identical':'Different'}</div>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-item"><div class="detail-key">Hash A Length</div><div class="detail-val">${a.length}</div></div>
+                <div class="detail-item"><div class="detail-key">Hash B Length</div><div class="detail-val">${b.length}</div></div>
+                <div class="detail-item"><div class="detail-key">Similarity</div><div class="detail-val">${pct}%</div></div>
+                <div class="detail-item"><div class="detail-key">Case-sensitive</div><div class="detail-val">${a === b ? 'Yes' : 'No (case-insensitive match)'}</div></div>
+            </div>
+        </div>`;
+}
+
+function similarity(a, b) {
+    if (a === b) return 100;
+    let matches = 0;
+    const len = Math.max(a.length, b.length);
+    for (let i = 0; i < Math.min(a.length, b.length); i++) {
+        if (a[i] === b[i]) matches++;
+    }
+    return Math.round((matches / len) * 100);
+}
+
+// ==============================
+// FILE HASHER
+// ==============================
+function hashFile() {
+    const file = document.getElementById('fileInput').files[0];
+    if (!file) return;
+    const algo = document.getElementById('fileAlgo').value;
+    const el = document.getElementById('fileResult');
+    el.innerHTML = '<div style="padding:16px;color:var(--text-secondary)">Reading file...</div>';
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const wordArr = CryptoJS.lib.WordArray.create(e.target.result);
+        let hash;
+        switch(algo) {
+            case 'md5': hash = CryptoJS.MD5(wordArr).toString(); break;
+            case 'sha1': hash = CryptoJS.SHA1(wordArr).toString(); break;
+            case 'sha256': hash = CryptoJS.SHA256(wordArr).toString(); break;
+            case 'sha512': hash = CryptoJS.SHA512(wordArr).toString(); break;
+        }
+        computedFileHash = hash;
+        el.innerHTML = `
+            <div class="result-item">
+                <div class="result-top">
+                    <div class="hash-name">${algo.toUpperCase()}</div>
+                    <button class="btn btn-ghost btn-sm" onclick="copyRaw('${hash}')">Copy</button>
+                </div>
+                <div class="copyable">
+                    <div class="hash-output">${hash}</div>
+                    <button class="copy-btn-float" onclick="copyRaw('${hash}')">Copy</button>
+                </div>
+                <div class="detail-grid" style="margin-top:12px">
+                    <div class="detail-item"><div class="detail-key">File</div><div class="detail-val">${file.name}</div></div>
+                    <div class="detail-item"><div class="detail-key">Size</div><div class="detail-val">${formatBytes(file.size)}</div></div>
+                    <div class="detail-item"><div class="detail-key">Type</div><div class="detail-val">${file.type || 'Unknown'}</div></div>
+                    <div class="detail-item"><div class="detail-key">Algorithm</div><div class="detail-val">${algo.toUpperCase()}</div></div>
+                </div>
+            </div>`;
+        verifyExpected();
+        toast('File hashed: ' + file.name);
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function verifyExpected() {
+    if (!computedFileHash) return;
+    const expected = document.getElementById('expectedHash').value.trim();
+    if (!expected) return;
+    const el = document.getElementById('fileResult');
+    const match = computedFileHash.toLowerCase() === expected.toLowerCase();
+    const existing = el.querySelector('.verify-row');
+    if (existing) existing.remove();
+    const div = document.createElement('div');
+    div.className = 'verify-row';
+    div.innerHTML = `<div class="info-panel" style="margin-top:12px;border-color:var(--${match?'green':'red'});background:var(--${match?'green':'red'}-soft);color:var(--${match?'green':'red'})">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="${match?'M9 12l2 2 4-4':'M15 9l-6 6M9 9l6 6'}"/></svg>
+        ${match ? '✓ Hash verified — file integrity confirmed!' : '✗ Hash mismatch — file may be corrupted or modified.'}
+    </div>`;
+    el.appendChild(div);
+}
+
+function formatBytes(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+    return (b/1048576).toFixed(1) + ' MB';
+}
+
+// ==============================
+// ENCODE / DECODE
+// ==============================
+const MORSE = {A:'.-',B:'-...',C:'-.-.',D:'-..',E:'.',F:'..-.',G:'--.',H:'....',I:'..',J:'.---',K:'-.-',L:'.-..',M:'--',N:'-.',O:'---',P:'.--.',Q:'--.-',R:'.-.',S:'...',T:'-',U:'..-',V:'...-',W:'.--',X:'-..-',Y:'-.--',Z:'--..',0:'-----',1:'.----',2:'..---',3:'...--',4:'....-',5:'.....',6:'-....',7:'--...',8:'---..',9:'----.','.':'.-.-.-',',':'--..--','?':'..--..','/':'-..-.'};
+const MORSE_REV = Object.fromEntries(Object.entries(MORSE).map(([k,v])=>[v,k]));
+
+function setEncodeMode(m) {
+    encodeMode = m;
+    document.querySelectorAll('.encode-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('encodeModeLbl').textContent = '(' + m.charAt(0).toUpperCase() + m.slice(1) + ')';
+    document.getElementById('encodeOutput').textContent = '—';
+}
+
+function doEncode() {
+    const t = document.getElementById('encodeInput').value;
+    let out = '';
+    try {
+        switch(encodeMode) {
+            case 'base64': out = btoa(unescape(encodeURIComponent(t))); break;
+            case 'hex': out = Array.from(new TextEncoder().encode(t)).map(b=>b.toString(16).padStart(2,'0')).join(''); break;
+            case 'url': out = encodeURIComponent(t); break;
+            case 'binary': out = Array.from(new TextEncoder().encode(t)).map(b=>b.toString(2).padStart(8,'0')).join(' '); break;
+            case 'morse': out = t.toUpperCase().split('').map(c => MORSE[c] || (c===' '?'/':'?')).join(' '); break;
+        }
+    } catch(e) { out = 'Error: ' + e.message; }
+    document.getElementById('encodeOutput').textContent = out;
+    toast('Encoded successfully');
+}
+
+function doDecode() {
+    const t = document.getElementById('encodeInput').value.trim();
+    let out = '';
+    try {
+        switch(encodeMode) {
+            case 'base64': out = decodeURIComponent(escape(atob(t))); break;
+            case 'hex': out = new TextDecoder().decode(new Uint8Array(t.match(/.{2}/g).map(h=>parseInt(h,16)))); break;
+            case 'url': out = decodeURIComponent(t); break;
+            case 'binary': out = new TextDecoder().decode(new Uint8Array(t.trim().split(/\s+/).map(b=>parseInt(b,2)))); break;
+            case 'morse': out = t.split(' ').map(c => c==='/'?' ':(MORSE_REV[c]||'?')).join(''); break;
+        }
+    } catch(e) { out = 'Error: ' + e.message; }
+    document.getElementById('encodeOutput').textContent = out;
+    toast('Decoded successfully');
+}
+
+function swapEncode() {
+    const inp = document.getElementById('encodeInput');
+    const out = document.getElementById('encodeOutput').textContent;
+    inp.value = out === '—' ? '' : out;
+    document.getElementById('encodeOutput').textContent = '—';
+}
+
+// ==============================
+// HMAC
+// ==============================
+function generateHMAC() {
+    const msg = document.getElementById('hmacMsg').value;
+    const key = document.getElementById('hmacKey').value;
+    const algo = document.getElementById('hmacAlgo').value;
+    if (!msg || !key) { toast('Message and key required', 'error'); return; }
+
+    let hmac;
+    try {
+        switch(algo) {
+            case 'hmacMD5': hmac = CryptoJS.HmacMD5(msg, key).toString(); break;
+            case 'hmacSHA1': hmac = CryptoJS.HmacSHA1(msg, key).toString(); break;
+            case 'hmacSHA256': hmac = CryptoJS.HmacSHA256(msg, key).toString(); break;
+            case 'hmacSHA512': hmac = CryptoJS.HmacSHA512(msg, key).toString(); break;
+        }
+    } catch(e) { toast('Error: ' + e.message, 'error'); return; }
+
+    const el = document.getElementById('hmacResult');
+    el.classList.add('show');
+    el.innerHTML = `
+        <div class="result-item">
+            <div class="result-top">
+                <div class="hash-name">${algo}</div>
+                <button class="btn btn-ghost btn-sm" onclick="copyRaw('${hmac}')">Copy</button>
+            </div>
+            <div class="copyable">
+                <div class="hash-output">${hmac}</div>
+                <button class="copy-btn-float" onclick="copyRaw('${hmac}')">Copy</button>
+            </div>
+            <div class="detail-grid" style="margin-top:12px">
+                <div class="detail-item"><div class="detail-key">Length</div><div class="detail-val">${hmac.length} chars</div></div>
+                <div class="detail-item"><div class="detail-key">Bits</div><div class="detail-val">${hmac.length*4}</div></div>
+            </div>
+        </div>`;
+    toast('HMAC generated!');
+}
+
+// ==============================
+// PASSWORD STRENGTH
+// ==============================
+function analyzePw() {
+    const pw = document.getElementById('pwInput').value;
+    const el = document.getElementById('pwResult');
+    if (!pw) { el.innerHTML = ''; return; }
+
+    // Scoring
+    let score = 0;
+    const checks = {
+        length8: pw.length >= 8,
+        length12: pw.length >= 12,
+        length16: pw.length >= 16,
+        upper: /[A-Z]/.test(pw),
+        lower: /[a-z]/.test(pw),
+        numbers: /[0-9]/.test(pw),
+        symbols: /[^A-Za-z0-9]/.test(pw),
+        noRepeat: !/(.)\\1{2,}/.test(pw),
+        noSequential: !/(?:abc|bcd|cde|123|234|345)/i.test(pw),
+    };
+
+    if (checks.length8) score += 10;
+    if (checks.length12) score += 15;
+    if (checks.length16) score += 15;
+    if (checks.upper) score += 10;
+    if (checks.lower) score += 10;
+    if (checks.numbers) score += 10;
+    if (checks.symbols) score += 20;
+    if (checks.noRepeat) score += 5;
+    if (checks.noSequential) score += 5;
+    score = Math.min(100, score);
+
+    const level = score >= 80 ? 'Strong' : score >= 55 ? 'Medium' : score >= 30 ? 'Weak' : 'Critical';
+    const col = score >= 80 ? 'green' : score >= 55 ? 'amber' : 'red';
+
+    // Entropy
+    let charset = 0;
+    if (/[a-z]/.test(pw)) charset += 26;
+    if (/[A-Z]/.test(pw)) charset += 26;
+    if (/[0-9]/.test(pw)) charset += 10;
+    if (/[^A-Za-z0-9]/.test(pw)) charset += 32;
+    const entropy = Math.round(pw.length * Math.log2(charset || 1));
+
+    // Time to crack (rough estimate)
+    const combinations = Math.pow(charset, pw.length);
+    const guessesPerSec = 1e10; // 10 billion/sec (GPU)
+    const secs = combinations / guessesPerSec / 2;
+    const ttc = formatTime(secs);
+
+    el.innerHTML = `
+        <div style="margin-top:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <span style="font-weight:700;color:var(--${col})">${level}</span>
+                <span style="font-size:13px;color:var(--text-secondary)">${score}/100</span>
+            </div>
+            <div class="meter-wrap">
+                <div class="meter-bar"><div class="meter-fill ${col}" style="width:${score}%"></div></div>
+            </div>
+            <div class="detail-grid" style="margin-top:12px">
+                <div class="detail-item"><div class="detail-key">Entropy</div><div class="detail-val">${entropy} bits</div></div>
+                <div class="detail-item"><div class="detail-key">Time to crack</div><div class="detail-val">${ttc}</div></div>
+                <div class="detail-item"><div class="detail-key">Length</div><div class="detail-val">${pw.length} chars</div></div>
+                <div class="detail-item"><div class="detail-key">Charset size</div><div class="detail-val">${charset}</div></div>
+            </div>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">
+                ${Object.entries(checks).map(([k,v]) => `
+                    <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary)">
+                        <span style="color:var(--${v?'green':'red'})">${v?'✓':'✗'}</span>
+                        ${{length8:'At least 8 characters',length12:'At least 12 characters',length16:'At least 16 characters',upper:'Uppercase letters',lower:'Lowercase letters',numbers:'Numbers',symbols:'Special characters',noRepeat:'No repeating characters',noSequential:'No sequential patterns'}[k]}
+                    </div>`).join('')}
+            </div>
+        </div>`;
+}
+
+function formatTime(secs) {
+    if (secs < 60) return Math.round(secs) + ' seconds';
+    if (secs < 3600) return Math.round(secs/60) + ' minutes';
+    if (secs < 86400) return Math.round(secs/3600) + ' hours';
+    if (secs < 31536000) return Math.round(secs/86400) + ' days';
+    if (secs < 3.15e10) return Math.round(secs/31536000) + ' years';
+    if (secs < 3.15e13) return 'thousands of years';
+    return 'millions of years';
+}
+
+function togglePwVis() {
+    const inp = document.getElementById('pwInput');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function genPassword() {
+    const len = parseInt(document.getElementById('pwLen').value);
+    let chars = '';
+    if (document.getElementById('pwUpper').checked) chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    if (document.getElementById('pwLower').checked) chars += 'abcdefghijklmnopqrstuvwxyz';
+    if (document.getElementById('pwNums').checked) chars += '0123456789';
+    if (document.getElementById('pwSyms').checked) chars += '!@#$%^&*()-_=+[]{}|;:,.<>?';
+    if (!chars) { toast('Select at least one character set', 'error'); return; }
+
+    const arr = new Uint8Array(len);
+    crypto.getRandomValues(arr);
+    const pw = Array.from(arr).map(b => chars[b % chars.length]).join('');
+
+    const el = document.getElementById('genPwResult');
+    el.classList.add('show');
+    el.innerHTML = `
+        <div class="result-item">
+            <div class="copyable">
+                <div class="hash-output" style="font-size:15px;letter-spacing:1px">${pw}</div>
+                <button class="copy-btn-float" onclick="copyRaw('${pw.replace(/'/g,"\\'")}')">Copy</button>
+            </div>
+            <div class="mt-3 flex gap-2">
+                <button class="btn btn-secondary btn-sm" onclick="genPassword()">Regenerate</button>
+                <button class="btn btn-ghost btn-sm" onclick="document.getElementById('pwInput').value='${pw.replace(/'/g,"\\'")}';analyzePw()">Test Strength</button>
+            </div>
+        </div>`;
+    toast('Password generated!');
+}
+
+// ==============================
+// HISTORY
+// ==============================
+function addHistory(hash, results) {
+    const entry = {
+        hash: hash,
+        type: results.length ? results[0].type : 'Unknown',
+        time: new Date().toLocaleTimeString(),
+        confidence: results.length ? results[0].confidence : 0
+    };
+    history.unshift(entry);
+    if (history.length > 50) history.pop();
+    localStorage.setItem('hg_history', JSON.stringify(history));
+    renderHistory();
+}
+
+function renderHistory() {
+    const el = document.getElementById('historyList');
+    if (!history.length) {
+        el.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><p>No history yet. Analyze some hashes first.</p></div>';
+        return;
+    }
+    el.innerHTML = '<div class="history-list">' + history.map(h => `
+        <div class="history-item" onclick="loadFromHistory('${h.hash.replace(/'/g,"\\'")}')">
+            <div class="history-hash">${h.hash}</div>
+            <div class="history-type">${h.type}</div>
+            <div class="history-time">${h.time}</div>
+        </div>`).join('') + '</div>';
+}
+
+function loadFromHistory(hash) {
+    switchTab('analyzer', document.querySelector('.nav-item'));
+    document.getElementById('analyzeInput').value = hash;
+    runAnalyze();
+}
+
+function clearHistory() {
+    history = [];
+    localStorage.removeItem('hg_history');
+    renderHistory();
+    toast('History cleared', 'info');
+}
+
+// ==============================
+// REFERENCE TABLE
+// ==============================
+function renderRefTable() {
+    const el = document.getElementById('refTable');
+    el.innerHTML = HASH_DB.map(h => {
+        const sc = h.security === 'SECURE' ? 'sec-secure' : h.security === 'WEAK' ? 'sec-weak' : 'sec-critical';
+        return `<tr>
+            <td style="font-weight:700;color:var(--accent)">${h.type}</td>
+            <td>${h.bits}</td>
+            <td>${h.length || '—'}</td>
+            <td><span class="sec-tag ${sc}">${h.security}</span></td>
+            <td style="color:var(--text-secondary)">${h.hashcat}</td>
+            <td style="color:var(--text-secondary);font-size:12px">${h.uses ? h.uses[0] : '—'}</td>
+        </tr>`;
+    }).join('');
+}
+
+// ==============================
+// COPY UTILITIES
+// ==============================
+function copyRaw(text) {
+    navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard'));
+}
+
+function copyText(id) {
+    const text = document.getElementById(id).textContent;
+    navigator.clipboard.writeText(text).then(() => toast('Copied!'));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+/* Mobile responsive enhancements */
+@media (max-width: 640px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .stat-card {
+        padding: 15px;
+    }
+    
+    .stat-value {
+        font-size: 24px;
+    }
+    
+    .card {
+        padding: 15px;
+    }
+    
+    .hash-tag {
+        font-size: 11px;
+        padding: 4px 10px;
+    }
+    
+    .activity-item {
+        gap: 10px;
+    }
+    
+    .activity-icon {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+    }
+}
+
+/* Tablet styles */
+@media (min-width: 641px) and (max-width: 1024px) {
+    .stats-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    }
+    
+    .card, .header, .stat-card {
+        background: rgba(30, 41, 59, 0.95);
+        color: #f1f5f9;
+    }
+    
+    .stat-label, .card-title, .logo-text p {
+        color: #cbd5e1;
+    }
+    
+    .stat-value {
+        color: white;
+    }
+    
+    .result-box {
+        background: #1e293b;
+    }
+    
+    .hash-item {
+        background: #0f172a;
+    }
+    
+    .activity-item {
+        border-bottom-color: #334155;
+    }
+}

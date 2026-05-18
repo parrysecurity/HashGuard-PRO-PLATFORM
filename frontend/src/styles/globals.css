@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-900 text-gray-100 font-sans;
+  }
+  
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-800;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary-600 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-500;
+  }
+}
+
+@layer components {
+  .glass-effect {
+    @apply backdrop-blur-lg bg-white/5 border border-white/10 rounded-xl;
+  }
+  
+  .cyber-button {
+    @apply relative overflow-hidden px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg 
+           transition-all duration-300 hover:bg-primary-700 hover:scale-105 
+           active:scale-95 shadow-lg shadow-primary-500/20;
+  }
+  
+  .cyber-input {
+    @apply w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg 
+           focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20
+           transition-all duration-200 text-white font-mono;
+  }
+  
+  .hash-card {
+    @apply glass-effect p-6 hover:shadow-2xl transition-all duration-300 hover:scale-[1.02];
+  }
+  
+  .glow-text {
+    @apply animate-glow;
+  }
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink {
+  50% { border-color: transparent; }
+}
+
+.terminal-effect {
+  @apply font-mono text-green-400 border-r-2 border-green-400 whitespace-nowrap overflow-hidden;
+  animation: typing 3s steps(40, end), blink 0.75s step-end infinite;
+}
