@@ -16,7 +16,7 @@
 
 <br>
 
-![HashGuard Pro Dashboard](https://hashidentifier.parrysecurity.online/))
+(https://hashidentifier.parrysecurity.online/)
 
 **Detect | Analyze | Generate | Verify | Secure**
 
