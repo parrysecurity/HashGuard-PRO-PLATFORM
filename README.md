@@ -18,9 +18,12 @@
 
 (https://hashidentifier.parrysecurity.online/)
 
+
 **Detect | Analyze | Generate | Verify | Secure**
 
 </div>
+
+<img width="1536" height="1024" alt="ChatGPT Image May 18, 2026, 12_19_10 PM" src="https://github.com/user-attachments/assets/9f51542b-308f-4136-b137-ed3c4fadce25" />
 
 ---
 
